@@ -1,0 +1,51 @@
+{
+    "name": "thiennhant95/laravel-encrypted-fields",
+    "description": "Config-driven field-level encryption for Laravel with encrypted email blind indexes, Eloquent casts, migration and key rotation.",
+    "keywords": [
+        "laravel",
+        "encryption",
+        "eloquent",
+        "pii",
+        "gdpr",
+        "blind-index",
+        "email"
+    ],
+    "license": "GPL-2.0-or-later",
+    "require": {
+        "php": "^8.1",
+        "illuminate/auth": "^10.0|^11.0|^12.0",
+        "illuminate/console": "^10.0|^11.0|^12.0",
+        "illuminate/database": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/validation": "^10.0|^11.0|^12.0"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpunit/phpunit": "^10.5|^11.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Thiennhant95\\LaravelEncryptedFields\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Thiennhant95\\LaravelEncryptedFields\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Thiennhant95\\LaravelEncryptedFields\\EncryptedFieldsServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}

@@ -1,0 +1,26 @@
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+return new class extends Migration
+{
+    public function up(): void
+    {
+        // Ciphertext is longer than plaintext. If your email column is
+        // varchar(255), widen it to varchar(512) or TEXT before backfilling.
+        // Drop the old email unique index and let email_bidx enforce uniqueness.
+        Schema::table('users', function (Blueprint $table): void {
+            $table->string('email_bidx', 64)->nullable()->unique()->after('email');
+        });
+    }
+
+    public function down(): void
+    {
+        Schema::table('users', function (Blueprint $table): void {
+            $table->dropUnique(array('users_email_bidx_unique'));
+            $table->dropColumn('email_bidx');
+        });
+    }
+};
