@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encrypted Fields for Laravel — encrypted email, working auth</title>
+<meta name="description" content="Config-driven AES-256-GCM field encryption for Laravel. Encrypt customer email and user PII, keep Eloquent readable, and use blind indexes for login, password reset and uniqueness.">
+<meta property="og:title" content="Encrypted Fields for Laravel — encrypted email, working auth">
+<meta property="og:description" content="Encrypt declared Eloquent fields, keep login/reset/unique working, backfill existing rows and rotate keys. Laravel 10/11/12.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<meta property="og:site_name" content="Encrypted Fields for Laravel">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="vi_VN">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta property="og:image" content="https://thiennhant95.github.io/laravel-encrypted-fields/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Encrypted Fields for Laravel — encrypted email, login still works">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Encrypted Fields for Laravel — encrypted email, working auth">
+<meta name="twitter:description" content="AES-256-GCM, encrypted email with blind-index lookup, encrypted password reset tokens, key rotation.">
+<meta name="twitter:image" content="https://thiennhant95.github.io/laravel-encrypted-fields/assets/og-image.png">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#070b12">
+<link rel="canonical" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="https://thiennhant95.github.io/laravel-encrypted-fields/sitemap.xml">
+<link rel="alternate" hreflang="en" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="alternate" hreflang="vi" href="https://thiennhant95.github.io/laravel-encrypted-fields/vi/">
+<link rel="alternate" hreflang="ja" href="https://thiennhant95.github.io/laravel-encrypted-fields/ja/">
+<link rel="alternate" hreflang="x-default" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/landing.css">
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="logo">EF</span> Encrypted Fields <span style="color:var(--muted);font-weight:500">for Laravel</span></div>
+    <nav class="navlinks">
+      <a href="#why">Why</a>
+      <a href="#evidence">Dogfood</a>
+      <a href="#features">Features</a>
+      <a href="#install">Install</a>
+      <a href="#tests">Tests</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/releases" target="_blank" rel="noopener">Releases</a>
+      <span class="lang"><a class="on" href="./">EN</a><a href="vi/">VI</a><a href="ja/">日本語</a></span>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div class="hero-grid">
+      <div>
+        <span class="badge">v0.1.2 · Laravel 10/11/12 · GPL-2.0-or-later</span>
+        <h1>Encrypt PII fields.<br><span class="grad">Keep email login working.</span></h1>
+        <p class="lead">
+          Config-driven AES-256-GCM encryption for Laravel. Encrypt customer emails and user PII,
+          keep Eloquent readable, and use blind indexes for login, password reset and uniqueness.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#install">Install</a>
+          <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields" target="_blank" rel="noopener">Source on GitHub</a>
+          <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields/releases/tag/v0.1.2" target="_blank" rel="noopener">Release v0.1.2</a>
+        </div>
+      </div>
+      <div class="mini-term" aria-label="Laravel encryption and password reset proof">
+        <div class="dots"><i></i><i></i><i></i><span>dogfooded</span></div>
+        <div class="cmd">$ php artisan encrypted-fields:status</div>
+        <div class="plain">current_key_id  main</div>
+        <div class="cmd">$user->email</div>
+        <div class="plain">taro@example.com</div>
+        <div class="cmd">SELECT email FROM users</div>
+        <div class="enc">enc:v1:main:9f2c8a...</div>
+        <div class="cmd">password_reset_tokens.email</div>
+        <div class="plain">8c1e... (blind index only)</div>
+        <div class="caption">Eloquent: plaintext · database: ciphertext</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>20</b><span>fields in one config map</span></div>
+      <div class="stat"><b>0</b><span>plaintext emails at rest</span></div>
+      <div class="stat"><b>10/11/12</b><span>Laravel versions tested</span></div>
+      <div class="stat"><b>65</b><span>package + dogfood assertions</span></div>
+    </div>
+  </div>
+
+  <section id="why">
+    <div class="wrap">
+      <span class="kicker">The problem</span>
+      <h2>Your database is a PII inventory.</h2>
+      <p class="sub">HTTPS protects transit. A DB dump, stolen backup, read replica or SQL injection still exposes customer emails and user data at rest — unless the fields themselves are encrypted.</p>
+      <div class="grid g3">
+        <div class="card bad"><div class="tag">Default Laravel</div><h3>Emails live in plaintext</h3><p>The users table, password reset tokens, backups and exports can all contain readable email addresses.</p></div>
+        <div class="card bad"><div class="tag">Hashing alone</div><h3>Login and uniqueness break</h3><p>One-way hashes protect values, but you still need case-insensitive login, reset lookup and duplicate registration.</p></div>
+        <div class="card bad"><div class="tag">DIY crypto</div><h3>Rotation and migration are risky</h3><p>Rolling your own key handling makes existing data, key rotation and rollback easy to get wrong.</p></div>
+      </div>
+      <h2 style="margin-top:40px">What you get</h2>
+      <p class="sub">A small Laravel package, not a rewrite of your app.</p>
+      <div class="grid g3">
+        <div class="card good"><div class="tag">At rest</div><h3>PII unreadable in DB dumps</h3><p>Declared fields are stored as <code>enc:v1:…</code>; the key stays in your environment or secret manager.</p></div>
+        <div class="card good"><div class="tag">No rewrites</div><h3>Eloquent stays readable</h3><p><code>$user->email</code>, <code>getAttribute()</code>, notifications and mail keep receiving plaintext.</p></div>
+        <div class="card good"><div class="tag">Auth intact</div><h3>Login and reset work</h3><p><code>Auth::attempt()</code>, password reset and reset notifications use the encrypted email safely.</p></div>
+        <div class="card good"><div class="tag">Lookup</div><h3>Blind-index email search</h3><p>Case-insensitive exact lookup through <code>email_bidx</code>, with a unique index for registration.</p></div>
+        <div class="card good"><div class="tag">Operations</div><h3>Backfill and rotate</h3><p>Encrypt existing rows, fill missing indexes and rotate keys with Artisan commands and dry runs.</p></div>
+        <div class="card good"><div class="tag">Open source</div><h3>GPL-2.0, no lock-in</h3><p>Source, changelog and releases on GitHub. No admin UI or key escrow; keys are yours.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="evidence">
+    <div class="wrap">
+      <h2>Dogfooded in a real Laravel app</h2>
+      <p class="sub">A Laravel 12 app with <code>User</code> and <code>Customer</code> models, run end-to-end with migrations, auth, password reset, backfill and key rotation.</p>
+      <div class="grid g2">
+        <figure class="shot">
+          <pre style="margin:0;border:0;border-radius:0"><code>$ php artisan encrypted-fields:status
+current_key_id          main
+current_key_configured  yes
+token_secret_configured yes
+
+$ php artisan encrypted-fields:encrypt --dry-run
+App\Models\User (3 fields)
+  would_change=1 changed=0 errors=0
+Dry run: 1 rows need changes</code></pre>
+          <figcaption>Real Artisan output from the dogfood app.</figcaption>
+        </figure>
+        <figure class="shot">
+          <pre style="margin:0;border:0;border-radius:0"><code>DB email:      enc:v1:main:9f2c8a...
+$user->email:  taro@example.com
+email_bidx:    8c1e... (64 chars)
+Auth::attempt(...): true
+reset token:   8c1e... (no plaintext email)</code></pre>
+          <figcaption>Encrypted at rest; plaintext through Eloquent; lookup via blind index.</figcaption>
+        </figure>
+      </div>
+      <div class="note">The dogfood app also verified long emails, case-insensitive login, duplicate uniqueness, reset notification delivery, backfilling legacy rows and rotation across two models.</div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>How it works</h2>
+      <p class="sub">Default deny: only fields listed in the config are encrypted. No core patches and no forced framework changes.</p>
+      <div class="grid g3">
+        <div class="card"><div class="icon">▦</div><h3>One config map</h3><p>List up to 20 fields per model with optional index and normalization settings.</p></div>
+        <div class="card"><div class="icon">🔐</div><h3>AES-256-GCM</h3><p>Randomized authenticated encryption with a key id in every payload for rotation.</p></div>
+        <div class="card"><div class="icon">🔎</div><h3>Blind index</h3><p>HMAC-SHA256 of the normalized value and field name; exact lookup without plaintext in the index.</p></div>
+        <div class="card"><div class="icon">👤</div><h3>Email login</h3><p>The custom user provider maps email credentials to the encrypted email index.</p></div>
+        <div class="card"><div class="icon">🔁</div><h3>Password reset</h3><p>The <code>encrypted-database</code> broker driver stores a blind index in the reset-token table.</p></div>
+        <div class="card"><div class="icon">🧰</div><h3>Operations</h3><p>Status, backfill with dry run, key rotation, configurable chunks and migration publishing.</p></div>
+      </div>
+      <div class="flow">
+        <div class="node"><b>Config</b>model → fields → index</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Eloquent</b>cast + blind index</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Crypto</b>AES-256-GCM + HMAC</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Install</h2>
+      <p class="sub">Requires PHP 8.1+, Laravel 10/11/12 and OpenSSL. Back up the database before encrypting existing rows.</p>
+      <div class="steps">
+        <div class="step"><b>01</b><p>Add the GitHub VCS package and publish config/migration.</p></div>
+        <div class="step"><b>02</b><p>Set the key ring, token secret and model field map.</p></div>
+        <div class="step"><b>03</b><p>Backfill, switch auth/password drivers and test login.</p></div>
+      </div>
+      <pre><code>composer config repositories.encrypted-fields vcs https://github.com/thiennhant95/laravel-encrypted-fields
+composer require thiennhant95/laravel-encrypted-fields:^0.1
+
+php artisan vendor:publish --tag=encrypted-fields-config
+php artisan vendor:publish --tag=encrypted-fields-migrations
+php artisan migrate
+
+# .env
+ENCRYPTED_FIELDS_KEY=base64:REPLACE_WITH_32_BYTE_KEY
+ENCRYPTED_FIELDS_KEY_ID=main
+ENCRYPTED_FIELDS_TOKEN_SECRET=REPLACE_WITH_A_STABLE_SECRET</code></pre>
+      <div class="grid g2" style="margin-top:18px">
+        <div class="card">
+          <h3>Model</h3>
+          <pre style="margin:10px 0 0"><code>use HasEncryptedFields;
+
+final class User extends Authenticatable
+{
+    use HasEncryptedFields;
+}</code></pre>
+        </div>
+        <div class="card">
+          <h3>Auth provider</h3>
+          <pre style="margin:10px 0 0"><code>'users' => [
+    'driver' => 'encrypted-eloquent',
+    'model' => App\Models\User::class,
+],</code></pre>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:18px">Full setup, schema changes for <code>email_bidx</code>/<code>email</code> length and the encrypted password broker are in the <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">README</a>.</p>
+    </div>
+  </section>
+
+  <section id="tests">
+    <div class="wrap">
+      <h2>Verification results</h2>
+      <p class="sub">Latest local runs plus the GitHub Actions matrix.</p>
+      <table>
+        <thead><tr><th>Area</th><th>Result</th></tr></thead>
+        <tbody>
+          <tr><td>Package suite</td><td><b>7 tests / 31 assertions</b>: encryption at rest, lookup, login, password-reset token privacy, unique validation, backfill and rotation.</td></tr>
+          <tr><td>Real app dogfood</td><td><b>3 tests / 34 assertions</b>: User + Customer models, long email, auth, reset notification, backfill and multi-model rotation.</td></tr>
+          <tr><td>CI matrix</td><td><b>7/7 jobs pass</b>: PHP 8.1–8.3 × Laravel 10/11/12.</td></tr>
+          <tr><td>Email at rest</td><td>Raw <code>email</code> contains <code>enc:v1:…</code>; <code>email_bidx</code> is a 64-character HMAC; Eloquent returns plaintext.</td></tr>
+          <tr><td>Password reset</td><td>Reset token table stores the blind index, not the plaintext address; notification still sends to the decrypted email.</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:22px">
+        Known limits: exact lookup only (no partial email search); no admin UI or key escrow; raw SQL updates bypass casts;
+        widen <code>email</code> to at least varchar(512) or TEXT before encrypting long addresses; HPOS is not relevant to this package.
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap faq">
+      <span class="kicker">FAQ</span>
+      <h2>Questions buyers ask</h2>
+      <details open>
+        <summary>Does it encrypt the email column too?</summary>
+        <p>Yes. The email itself is AES-256-GCM ciphertext; a separate <code>email_bidx</code> column stores a normalized HMAC for exact lookup and uniqueness.</p>
+      </details>
+      <details>
+        <summary>Can users still log in and reset passwords?</summary>
+        <p>Yes. The custom user provider maps login credentials to <code>email_bidx</code>, and the encrypted password broker keeps reset tokens free of plaintext email.</p>
+      </details>
+      <details>
+        <summary>Can I search email partially?</summary>
+        <p>No. Blind indexes support exact equality only. Partial <code>LIKE</code> search would require a separate token index and is outside this package.</p>
+      </details>
+      <details>
+        <summary>How do I validate unique emails?</summary>
+        <p>Use <code>EncryptedUnique(User::class, 'email')</code> instead of Laravel's default <code>unique:users,email</code>, because the stored email is ciphertext.</p>
+      </details>
+      <details>
+        <summary>What happens if I lose the key?</summary>
+        <p>Encrypted values are unrecoverable without the key. Keep backups of the key ring outside the database and rehearse rotation before changing keys.</p>
+      </details>
+      <details>
+        <summary>Can I encrypt 20 fields?</summary>
+        <p>Yes. Add any number of fields to the model map. Fields with an <code>index</code> get blind-index lookup; fields without one are encrypted only.</p>
+      </details>
+      <details>
+        <summary>Is it free?</summary>
+        <p>Yes. GPL-2.0-or-later, source and releases on GitHub. No paid tier, telemetry or key escrow.</p>
+      </details>
+    </div>
+  </section>
+  <section id="start" style="border-top:0">
+    <div class="wrap" style="text-align:center">
+      <span class="kicker">Get started</span>
+      <h2>Encrypt email without breaking auth.</h2>
+      <p class="sub" style="margin-left:auto;margin-right:auto">Install the package, map your fields, back up, then run the backfill dry run before switching production traffic.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn primary" href="https://github.com/thiennhant95/laravel-encrypted-fields/releases/tag/v0.1.2" target="_blank" rel="noopener">Download v0.1.2</a>
+        <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Read the docs</a>
+      </div>
+      <div class="chips" style="justify-content:center;margin-top:18px">
+        <span class="chip">Laravel 10/11/12</span><span class="chip">PHP 8.1+</span><span class="chip">No telemetry</span><span class="chip">Keys stay with you</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div><b>Encrypted Fields for Laravel</b> · GPL-2.0-or-later · thiennhant95<br><span>Public landing page. Claims are backed by local tests and the CI matrix.</span></div>
+    <div>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/releases" target="_blank" rel="noopener">Releases</a> ·
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

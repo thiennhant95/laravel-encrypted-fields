@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encrypted Fields for Laravel — mã hoá email, giữ nguyên đăng nhập</title>
+<meta name="description" content="Mã hoá field-level AES-256-GCM cho Laravel. Mã hoá email khách hàng và PII người dùng, giữ Eloquent dễ đọc, dùng blind index cho đăng nhập, reset mật khẩu và unique.">
+<meta property="og:title" content="Encrypted Fields for Laravel — mã hoá email, giữ nguyên đăng nhập">
+<meta property="og:description" content="Mã hoá field Eloquent đã khai báo, giữ login/reset/unique hoạt động, migrate dữ liệu cũ và rotate key. Laravel 10/11/12.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://thiennhant95.github.io/laravel-encrypted-fields/vi/">
+<meta property="og:site_name" content="Encrypted Fields for Laravel">
+<meta property="og:locale" content="vi_VN">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="ja_JP">
+<meta property="og:image" content="https://thiennhant95.github.io/laravel-encrypted-fields/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Encrypted Fields for Laravel — mã hoá email, login vẫn hoạt động">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Encrypted Fields for Laravel — mã hoá email, giữ nguyên đăng nhập">
+<meta name="twitter:description" content="AES-256-GCM, email mã hoá với blind-index lookup, token reset mật khẩu an toàn, key rotation.">
+<meta name="twitter:image" content="https://thiennhant95.github.io/laravel-encrypted-fields/assets/og-image.png">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#070b12">
+<link rel="canonical" href="https://thiennhant95.github.io/laravel-encrypted-fields/vi/">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="https://thiennhant95.github.io/laravel-encrypted-fields/sitemap.xml">
+<link rel="alternate" hreflang="en" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="alternate" hreflang="vi" href="https://thiennhant95.github.io/laravel-encrypted-fields/vi/">
+<link rel="alternate" hreflang="ja" href="https://thiennhant95.github.io/laravel-encrypted-fields/ja/">
+<link rel="alternate" hreflang="x-default" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/landing.css">
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="logo">EF</span> Encrypted Fields <span style="color:var(--muted);font-weight:500">for Laravel</span></div>
+    <nav class="navlinks">
+      <a href="#why">Vì sao</a>
+      <a href="#evidence">Dogfood</a>
+      <a href="#features">Tính năng</a>
+      <a href="#install">Cài đặt</a>
+      <a href="#tests">Test</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/releases" target="_blank" rel="noopener">Releases</a>
+      <span class="lang"><a href="../">EN</a><a class="on" href="./">VI</a><a href="../ja/">日本語</a></span>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div class="hero-grid">
+      <div>
+        <span class="badge">v0.1.2 · Laravel 10/11/12 · GPL-2.0-or-later</span>
+        <h1>Mã hoá field PII.<br><span class="grad">Vẫn đăng nhập bằng email.</span></h1>
+        <p class="lead">
+          Mã hoá AES-256-GCM theo config cho Laravel. Mã hoá email khách hàng và PII người dùng,
+          giữ Eloquent trả plaintext, dùng blind index cho đăng nhập, reset mật khẩu và unique.
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#install">Cài đặt</a>
+          <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields" target="_blank" rel="noopener">Mã nguồn GitHub</a>
+          <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields/releases/tag/v0.1.2" target="_blank" rel="noopener">Release v0.1.2</a>
+        </div>
+      </div>
+      <div class="mini-term" aria-label="Bằng chứng mã hoá Laravel và reset mật khẩu">
+        <div class="dots"><i></i><i></i><i></i><span>đã dogfood</span></div>
+        <div class="cmd">$ php artisan encrypted-fields:status</div>
+        <div class="plain">current_key_id  main</div>
+        <div class="cmd">$user->email</div>
+        <div class="plain">taro@example.com</div>
+        <div class="cmd">SELECT email FROM users</div>
+        <div class="enc">enc:v1:main:9f2c8a...</div>
+        <div class="cmd">password_reset_tokens.email</div>
+        <div class="plain">8c1e... (chỉ blind index)</div>
+        <div class="caption">Eloquent: plaintext · database: ciphertext</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>20</b><span>field trong một config map</span></div>
+      <div class="stat"><b>0</b><span>email plaintext khi lưu</span></div>
+      <div class="stat"><b>10/11/12</b><span>phiên bản Laravel đã test</span></div>
+      <div class="stat"><b>65</b><span>assertion package + dogfood</span></div>
+    </div>
+  </div>
+
+  <section id="why">
+    <div class="wrap">
+      <span class="kicker">Vấn đề</span>
+      <h2>Database của bạn là một kho PII.</h2>
+      <p class="sub">HTTPS bảo vệ lúc truyền. Nhưng DB dump, backup bị trộm, read replica hay SQL injection vẫn làm lộ email khách hàng và dữ liệu user khi lưu — trừ khi chính các field được mã hoá.</p>
+      <div class="grid g3">
+        <div class="card bad"><div class="tag">Laravel mặc định</div><h3>Email nằm plaintext</h3><p>Bảng users, password reset, backup và export đều có thể chứa email đọc được.</p></div>
+        <div class="card bad"><div class="tag">Chỉ hash</div><h3>Login và unique bị hỏng</h3><p>Hash một chiều bảo vệ giá trị nhưng bạn vẫn cần login không phân biệt hoa thường, reset lookup và chống trùng.</p></div>
+        <div class="card bad"><div class="tag">Tự làm crypto</div><h3>Migrate và rotate nguy hiểm</h3><p>Tự quản lý key dễ sai khi migrate dữ liệu cũ, rotate key và rollback.</p></div>
+      </div>
+      <h2 style="margin-top:40px">Bạn nhận được gì</h2>
+      <p class="sub">Một package Laravel nhỏ, không phải viết lại app.</p>
+      <div class="grid g3">
+        <div class="card good"><div class="tag">Khi lưu</div><h3>DB dump không đọc được PII</h3><p>Field đã khai báo lưu dạng <code>enc:v1:…</code>; key nằm trong env hoặc secret manager.</p></div>
+        <div class="card good"><div class="tag">Không rewrite</div><h3>Eloquent vẫn dễ đọc</h3><p><code>$user->email</code>, <code>getAttribute()</code>, notification và mail vẫn nhận plaintext.</p></div>
+        <div class="card good"><div class="tag">Auth nguyên vẹn</div><h3>Login và reset hoạt động</h3><p><code>Auth::attempt()</code>, reset mật khẩu và notification dùng email đã mã hoá an toàn.</p></div>
+        <div class="card good"><div class="tag">Lookup</div><h3>Tìm email bằng blind index</h3><p>Exact lookup không phân biệt hoa thường qua <code>email_bidx</code>, kèm unique index cho đăng ký.</p></div>
+        <div class="card good"><div class="tag">Vận hành</div><h3>Backfill và rotate key</h3><p>Mã hoá dữ liệu cũ, điền index còn thiếu và rotate key bằng Artisan command có dry-run.</p></div>
+        <div class="card good"><div class="tag">Open source</div><h3>GPL-2.0, không lock-in</h3><p>Source, changelog, release trên GitHub. Không admin UI, không giữ key hộ; key thuộc về bạn.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="evidence">
+    <div class="wrap">
+      <h2>Dogfood trên app Laravel thật</h2>
+      <p class="sub">App Laravel 12 với model <code>User</code> và <code>Customer</code>, chạy end-to-end với migration, auth, reset mật khẩu, backfill và rotate key.</p>
+      <div class="grid g2">
+        <figure class="shot">
+          <pre style="margin:0;border:0;border-radius:0"><code>$ php artisan encrypted-fields:status
+current_key_id          main
+current_key_configured  yes
+token_secret_configured yes
+
+$ php artisan encrypted-fields:encrypt --dry-run
+App\Models\User (3 fields)
+  would_change=1 changed=0 errors=0
+Dry run: 1 rows need changes</code></pre>
+          <figcaption>Output Artisan thật từ app dogfood.</figcaption>
+        </figure>
+        <figure class="shot">
+          <pre style="margin:0;border:0;border-radius:0"><code>DB email:      enc:v1:main:9f2c8a...
+$user->email:  taro@example.com
+email_bidx:    8c1e... (64 chars)
+Auth::attempt(...): true
+reset token:   8c1e... (không có email plaintext)</code></pre>
+          <figcaption>Lưu ciphertext; Eloquent trả plaintext; lookup qua blind index.</figcaption>
+        </figure>
+      </div>
+      <div class="note">Dogfood cũng kiểm tra email dài, login không phân biệt hoa thường, unique trùng, gửi notification reset, backfill dữ liệu cũ và rotate key trên hai model.</div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>Cách hoạt động</h2>
+      <p class="sub">Default deny: chỉ field khai báo trong config mới bị mã hoá. Không patch core, không ép đổi framework.</p>
+      <div class="grid g3">
+        <div class="card"><div class="icon">▦</div><h3>Một config map</h3><p>Khai báo tối đa 20 field mỗi model, kèm index và normalize tùy chọn.</p></div>
+        <div class="card"><div class="icon">🔐</div><h3>AES-256-GCM</h3><p>Mã hoá có xác thực, randomized; mỗi payload lưu key id để rotate key.</p></div>
+        <div class="card"><div class="icon">🔎</div><h3>Blind index</h3><p>HMAC-SHA256 của giá trị đã normalize và tên field; exact lookup không lưu plaintext trong index.</p></div>
+        <div class="card"><div class="icon">👤</div><h3>Login email</h3><p>Custom user provider map credential email sang blind index của email đã mã hoá.</p></div>
+        <div class="card"><div class="icon">🔁</div><h3>Reset mật khẩu</h3><p>Driver broker <code>encrypted-database</code> lưu blind index vào bảng reset token.</p></div>
+        <div class="card"><div class="icon">🧰</div><h3>Vận hành</h3><p>Status, backfill có dry-run, rotate key, chunk tùy chỉnh và publish migration.</p></div>
+      </div>
+      <div class="flow">
+        <div class="node"><b>Config</b>model → field → index</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Eloquent</b>cast + blind index</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Crypto</b>AES-256-GCM + HMAC</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>Cài đặt</h2>
+      <p class="sub">Yêu cầu PHP 8.1+, Laravel 10/11/12 và OpenSSL. Backup DB trước khi mã hoá dữ liệu cũ.</p>
+      <div class="steps">
+        <div class="step"><b>01</b><p>Thêm package qua GitHub VCS, publish config/migration.</p></div>
+        <div class="step"><b>02</b><p>Đặt key ring, token secret và map field cho model.</p></div>
+        <div class="step"><b>03</b><p>Backfill, đổi auth/password driver rồi test login.</p></div>
+      </div>
+      <pre><code>composer config repositories.encrypted-fields vcs https://github.com/thiennhant95/laravel-encrypted-fields
+composer require thiennhant95/laravel-encrypted-fields:^0.1
+
+php artisan vendor:publish --tag=encrypted-fields-config
+php artisan vendor:publish --tag=encrypted-fields-migrations
+php artisan migrate
+
+# .env
+ENCRYPTED_FIELDS_KEY=base64:REPLACE_WITH_32_BYTE_KEY
+ENCRYPTED_FIELDS_KEY_ID=main
+ENCRYPTED_FIELDS_TOKEN_SECRET=REPLACE_WITH_A_STABLE_SECRET</code></pre>
+      <div class="grid g2" style="margin-top:18px">
+        <div class="card">
+          <h3>Model</h3>
+          <pre style="margin:10px 0 0"><code>use HasEncryptedFields;
+
+final class User extends Authenticatable
+{
+    use HasEncryptedFields;
+}</code></pre>
+        </div>
+        <div class="card">
+          <h3>Auth provider</h3>
+          <pre style="margin:10px 0 0"><code>'users' => [
+    'driver' => 'encrypted-eloquent',
+    'model' => App\Models\User::class,
+],</code></pre>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:18px">Hướng dẫn đầy đủ về <code>email_bidx</code>, độ dài cột <code>email</code> và password broker mã hoá nằm trong <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">README</a>.</p>
+    </div>
+  </section>
+
+  <section id="tests">
+    <div class="wrap">
+      <h2>Kết quả kiểm chứng</h2>
+      <p class="sub">Kết quả local mới nhất và ma trận GitHub Actions.</p>
+      <table>
+        <thead><tr><th>Hạng mục</th><th>Kết quả</th></tr></thead>
+        <tbody>
+          <tr><td>Package suite</td><td><b>7 test / 31 assertion</b>: mã hoá khi lưu, lookup, login, quyền riêng tư token reset, unique, backfill và rotate.</td></tr>
+          <tr><td>Dogfood app thật</td><td><b>3 test / 34 assertion</b>: User + Customer, email dài, auth, notification reset, backfill và rotate nhiều model.</td></tr>
+          <tr><td>CI matrix</td><td><b>7/7 job pass</b>: PHP 8.1–8.3 × Laravel 10/11/12.</td></tr>
+          <tr><td>Email khi lưu</td><td><code>email</code> raw là <code>enc:v1:…</code>; <code>email_bidx</code> là HMAC 64 ký tự; Eloquent trả plaintext.</td></tr>
+          <tr><td>Reset mật khẩu</td><td>Bảng reset token lưu blind index, không lưu email plaintext; notification vẫn gửi tới email đã giải mã.</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:22px">
+        Giới hạn: chỉ exact lookup (không tìm một phần email); không admin UI/key escrow; update bằng raw SQL sẽ bypass cast;
+        cần mở <code>email</code> lên ít nhất varchar(512) hoặc TEXT trước khi mã hoá email dài.
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap faq">
+      <span class="kicker">FAQ</span>
+      <h2>Câu hỏi trước khi mua</h2>
+      <details open>
+        <summary>Có mã hoá luôn cột email không?</summary>
+        <p>Có. Email lưu dạng ciphertext AES-256-GCM; cột <code>email_bidx</code> riêng lưu HMAC đã normalize để exact lookup và unique.</p>
+      </details>
+      <details>
+        <summary>User vẫn login và reset mật khẩu được không?</summary>
+        <p>Được. Custom user provider map credential login sang <code>email_bidx</code>, và password broker mã hoá giữ token reset không chứa email plaintext.</p>
+      </details>
+      <details>
+        <summary>Có tìm một phần email được không?</summary>
+        <p>Không. Blind index chỉ hỗ trợ exact equality. Tìm <code>LIKE</code> một phần cần token index riêng, ngoài phạm vi package.</p>
+      </details>
+      <details>
+        <summary>Validate unique email thế nào?</summary>
+        <p>Dùng <code>EncryptedUnique(User::class, 'email')</code> thay vì <code>unique:users,email</code>, vì email lưu trong DB là ciphertext.</p>
+      </details>
+      <details>
+        <summary>Mất key thì sao?</summary>
+        <p>Không thể khôi phục giá trị đã mã hoá nếu mất key. Hãy backup key ring ngoài DB và diễn tập rotation trước khi đổi key.</p>
+      </details>
+      <details>
+        <summary>Có dùng cho dưới 20 field không?</summary>
+        <p>Có. Thêm bao nhiêu field cũng được vào map model. Field có <code>index</code> sẽ tìm kiếm được; field không có index chỉ mã hoá.</p>
+      </details>
+      <details>
+        <summary>Có miễn phí không?</summary>
+        <p>Có. GPL-2.0-or-later, source và release trên GitHub. Không có bản trả phí, telemetry hay key escrow.</p>
+      </details>
+    </div>
+  </section>
+  <section id="start" style="border-top:0">
+    <div class="wrap" style="text-align:center">
+      <span class="kicker">Bắt đầu</span>
+      <h2>Mã hoá email mà không phá auth.</h2>
+      <p class="sub" style="margin-left:auto;margin-right:auto">Cài package, map field, backup, chạy backfill dry-run rồi mới chuyển traffic production.</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn primary" href="https://github.com/thiennhant95/laravel-encrypted-fields/releases/tag/v0.1.2" target="_blank" rel="noopener">Tải v0.1.2</a>
+        <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Đọc docs</a>
+      </div>
+      <div class="chips" style="justify-content:center;margin-top:18px">
+        <span class="chip">Laravel 10/11/12</span><span class="chip">PHP 8.1+</span><span class="chip">Không telemetry</span><span class="chip">Key thuộc về bạn</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div><b>Encrypted Fields for Laravel</b> · GPL-2.0-or-later · thiennhant95<br><span>Landing công khai. Nội dung dựa trên test local và CI matrix.</span></div>
+    <div>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/releases" target="_blank" rel="noopener">Releases</a> ·
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

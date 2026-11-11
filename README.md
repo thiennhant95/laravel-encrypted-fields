@@ -11,6 +11,10 @@ blind index.
 - `encrypt` and `rotate` Artisan commands
 - Laravel 10/11/12, PHP 8.1+
 
+**Website:** [English](https://thiennhant95.github.io/laravel-encrypted-fields/) ·
+[Tiếng Việt](https://thiennhant95.github.io/laravel-encrypted-fields/vi/) ·
+[日本語](https://thiennhant95.github.io/laravel-encrypted-fields/ja/)
+
 ## Requirements
 
 - PHP 8.1 or newer with OpenSSL

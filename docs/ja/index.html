@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Encrypted Fields for Laravel — メールを暗号化してログインを維持</title>
+<meta name="description" content="Laravel 向けの設定駆動 AES-256-GCM フィールド暗号化。顧客メールとユーザー PII を暗号化し、Eloquent はそのまま。ログイン、パスワードリセット、一意性はブラインドインデックスで維持します。">
+<meta property="og:title" content="Encrypted Fields for Laravel — メールを暗号化してログインを維持">
+<meta property="og:description" content="宣言した Eloquent フィールドを暗号化し、ログイン/リセット/一意性を維持。既存データの移行とキーローテーション対応。Laravel 10/11/12。">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://thiennhant95.github.io/laravel-encrypted-fields/ja/">
+<meta property="og:site_name" content="Encrypted Fields for Laravel">
+<meta property="og:locale" content="ja_JP">
+<meta property="og:locale:alternate" content="en_US">
+<meta property="og:locale:alternate" content="vi_VN">
+<meta property="og:image" content="https://thiennhant95.github.io/laravel-encrypted-fields/assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Encrypted Fields for Laravel — メール暗号化とログイン維持">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Encrypted Fields for Laravel — メールを暗号化してログインを維持">
+<meta name="twitter:description" content="AES-256-GCM、暗号化メールのブラインドインデックス検索、暗号化されたパスワードリセットトークン、キーローテーション。">
+<meta name="twitter:image" content="https://thiennhant95.github.io/laravel-encrypted-fields/assets/og-image.png">
+<meta name="robots" content="index,follow">
+<meta name="theme-color" content="#070b12">
+<link rel="canonical" href="https://thiennhant95.github.io/laravel-encrypted-fields/ja/">
+<link rel="sitemap" type="application/xml" title="Sitemap" href="https://thiennhant95.github.io/laravel-encrypted-fields/sitemap.xml">
+<link rel="alternate" hreflang="en" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="alternate" hreflang="vi" href="https://thiennhant95.github.io/laravel-encrypted-fields/vi/">
+<link rel="alternate" hreflang="ja" href="https://thiennhant95.github.io/laravel-encrypted-fields/ja/">
+<link rel="alternate" hreflang="x-default" href="https://thiennhant95.github.io/laravel-encrypted-fields/">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/landing.css">
+</head>
+<body>
+<header>
+  <div class="wrap nav">
+    <div class="brand"><span class="logo">EF</span> Encrypted Fields <span style="color:var(--muted);font-weight:500">for Laravel</span></div>
+    <nav class="navlinks">
+      <a href="#why">課題</a>
+      <a href="#evidence">Dogfood</a>
+      <a href="#features">機能</a>
+      <a href="#install">インストール</a>
+      <a href="#tests">テスト</a>
+      <a href="#faq">FAQ</a>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/releases" target="_blank" rel="noopener">Releases</a>
+      <span class="lang"><a href="../">EN</a><a href="../vi/">VI</a><a class="on" href="./">日本語</a></span>
+    </nav>
+  </div>
+</header>
+
+<main>
+  <div class="wrap hero">
+    <div class="hero-grid">
+      <div>
+        <span class="badge">v0.1.2 · Laravel 10/11/12 · GPL-2.0-or-later</span>
+        <h1>PII フィールドを暗号化。<br><span class="grad">メールログインはそのまま。</span></h1>
+        <p class="lead">
+          Laravel 向けの設定駆動 AES-256-GCM 暗号化。顧客メールとユーザー PII を暗号化し、
+          Eloquent は平文のまま扱えます。ログイン、パスワードリセット、一意性はブラインドインデックスで維持します。
+        </p>
+        <div class="cta">
+          <a class="btn primary" href="#install">インストール</a>
+          <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields" target="_blank" rel="noopener">GitHub のソース</a>
+          <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields/releases/tag/v0.1.2" target="_blank" rel="noopener">v0.1.2 をリリース</a>
+        </div>
+      </div>
+      <div class="mini-term" aria-label="Laravel 暗号化とパスワードリセットの検証">
+        <div class="dots"><i></i><i></i><i></i><span>dogfooded</span></div>
+        <div class="cmd">$ php artisan encrypted-fields:status</div>
+        <div class="plain">current_key_id  main</div>
+        <div class="cmd">$user->email</div>
+        <div class="plain">taro@example.com</div>
+        <div class="cmd">SELECT email FROM users</div>
+        <div class="enc">enc:v1:main:9f2c8a...</div>
+        <div class="cmd">password_reset_tokens.email</div>
+        <div class="plain">8c1e... (ブラインドインデックスのみ)</div>
+        <div class="caption">Eloquent: 平文 · データベース: 暗号文</div>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat"><b>20</b><span>1 つの設定マップで管理するフィールド</span></div>
+      <div class="stat"><b>0</b><span>保存時のメール平文</span></div>
+      <div class="stat"><b>10/11/12</b><span>テスト済み Laravel バージョン</span></div>
+      <div class="stat"><b>65</b><span>パッケージ + dogfood アサーション</span></div>
+    </div>
+  </div>
+
+  <section id="why">
+    <div class="wrap">
+      <span class="kicker">課題</span>
+      <h2>データベースは PII の在庫です。</h2>
+      <p class="sub">HTTPS は通信中を守ります。しかし DB ダンプ、盗まれたバックアップ、リードレプリカ、SQL インジェクションは保存時の顧客メールやユーザーデータを露出します。フィールド自体を暗号化しない限り。</p>
+      <div class="grid g3">
+        <div class="card bad"><div class="tag">Laravel デフォルト</div><h3>メールが平文で残る</h3><p>users テーブル、パスワードリセット、バックアップ、エクスポートに読めるメールアドレスが含まれます。</p></div>
+        <div class="card bad"><div class="tag">ハッシュだけでは不十分</div><h3>ログインと一意性が壊れる</h3><p>一方向ハッシュは値を守りますが、大文字小文字を無視したログイン、リセット検索、重複登録が必要です。</p></div>
+        <div class="card bad"><div class="tag">自作暗号</div><h3>移行とローテーションが危険</h3><p>独自のキー管理は、既存データ、キーローテーション、ロールバックを誤りやすくします。</p></div>
+      </div>
+      <h2 style="margin-top:40px">得られるもの</h2>
+      <p class="sub">アプリを書き換えるのではなく、小さな Laravel パッケージで解決します。</p>
+      <div class="grid g3">
+        <div class="card good"><div class="tag">保存時</div><h3>DB ダンプで PII を読めない</h3><p>宣言したフィールドは <code>enc:v1:…</code> として保存され、キーは環境変数またはシークレット管理に残ります。</p></div>
+        <div class="card good"><div class="tag">書き換え不要</div><h3>Eloquent はそのまま</h3><p><code>$user->email</code>、<code>getAttribute()</code>、通知、メールは平文を受け取ります。</p></div>
+        <div class="card good"><div class="tag">認証維持</div><h3>ログインとリセットが動く</h3><p><code>Auth::attempt()</code>、パスワードリセット、通知が暗号化メールを安全に扱います。</p></div>
+        <div class="card good"><div class="tag">検索</div><h3>ブラインドインデックス検索</h3><p>大文字小文字を無視した完全一致検索を <code>email_bidx</code> で実現し、登録時の一意性も保証します。</p></div>
+        <div class="card good"><div class="tag">運用</div><h3>既存データ移行とローテーション</h3><p>既存行の暗号化、インデックス補完、キーローテーションを Artisan コマンドとドライランで実行。</p></div>
+        <div class="card good"><div class="tag">オープンソース</div><h3>GPL-2.0、ロックインなし</h3><p>ソース、変更履歴、リリースは GitHub。管理画面やキー預託はなく、キーはあなたのもの。</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="evidence">
+    <div class="wrap">
+      <h2>実際の Laravel アプリで dogfood</h2>
+      <p class="sub">Laravel 12 アプリで <code>User</code> と <code>Customer</code> モデルを使い、マイグレーション、認証、パスワードリセット、バックフィル、キーローテーションまで実行しました。</p>
+      <div class="grid g2">
+        <figure class="shot">
+          <pre style="margin:0;border:0;border-radius:0"><code>$ php artisan encrypted-fields:status
+current_key_id          main
+current_key_configured  yes
+token_secret_configured yes
+
+$ php artisan encrypted-fields:encrypt --dry-run
+App\Models\User (3 fields)
+  would_change=1 changed=0 errors=0
+Dry run: 1 rows need changes</code></pre>
+          <figcaption>Dogfood アプリの実際の Artisan 出力。</figcaption>
+        </figure>
+        <figure class="shot">
+          <pre style="margin:0;border:0;border-radius:0"><code>DB email:      enc:v1:main:9f2c8a...
+$user->email:  taro@example.com
+email_bidx:    8c1e... (64 chars)
+Auth::attempt(...): true
+reset token:   8c1e... (平文メールなし)</code></pre>
+          <figcaption>保存時は暗号文、Eloquent では平文、検索はブラインドインデックス。</figcaption>
+        </figure>
+      </div>
+      <div class="note">Dogfood では長いメール、大文字小文字を無視したログイン、重複の一意性、リセット通知、既存行のバックフィル、2 モデルのキーローテーションも検証しました。</div>
+    </div>
+  </section>
+
+  <section id="features">
+    <div class="wrap">
+      <h2>仕組み</h2>
+      <p class="sub">デフォルト拒否: 設定に列挙したフィールドだけを暗号化。コアパッチもフレームワークの強制変更もありません。</p>
+      <div class="grid g3">
+        <div class="card"><div class="icon">▦</div><h3>1 つの設定マップ</h3><p>モデルごとに最大 20 フィールドを、任意のインデックスと正規化設定と一緒に列挙。</p></div>
+        <div class="card"><div class="icon">🔐</div><h3>AES-256-GCM</h3><p>ランダム化された認証付き暗号化。各ペイロードにキー ID を保存してローテーション可能。</p></div>
+        <div class="card"><div class="icon">🔎</div><h3>ブラインドインデックス</h3><p>正規化した値とフィールド名の HMAC-SHA256。インデックスに平文を保存せず完全一致検索。</p></div>
+        <div class="card"><div class="icon">👤</div><h3>メールログイン</h3><p>カスタムユーザープロバイダーがメール認証情報を暗号化メールのインデックスへ変換。</p></div>
+        <div class="card"><div class="icon">🔁</div><h3>パスワードリセット</h3><p><code>encrypted-database</code> ブローカードライバーがリセットトークン表にブラインドインデックスを保存。</p></div>
+        <div class="card"><div class="icon">🧰</div><h3>運用</h3><p>ステータス、ドライラン付きバックフィル、キーローテーション、チャンク設定、マイグレーション公開。</p></div>
+      </div>
+      <div class="flow">
+        <div class="node"><b>設定</b>モデル → フィールド → インデックス</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>Eloquent</b>キャスト + ブラインドインデックス</div>
+        <div class="arrow">→</div>
+        <div class="node"><b>暗号</b>AES-256-GCM + HMAC</div>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <div class="wrap">
+      <h2>インストール</h2>
+      <p class="sub">PHP 8.1+、Laravel 10/11/12、OpenSSL が必要です。既存行を暗号化する前に DB をバックアップしてください。</p>
+      <div class="steps">
+        <div class="step"><b>01</b><p>GitHub VCS パッケージを追加し、設定とマイグレーションを公開。</p></div>
+        <div class="step"><b>02</b><p>キーリング、トークンシークレット、モデルのフィールドマップを設定。</p></div>
+        <div class="step"><b>03</b><p>バックフィルし、認証/パスワードドライバーを切り替えてログインをテスト。</p></div>
+      </div>
+      <pre><code>composer config repositories.encrypted-fields vcs https://github.com/thiennhant95/laravel-encrypted-fields
+composer require thiennhant95/laravel-encrypted-fields:^0.1
+
+php artisan vendor:publish --tag=encrypted-fields-config
+php artisan vendor:publish --tag=encrypted-fields-migrations
+php artisan migrate
+
+# .env
+ENCRYPTED_FIELDS_KEY=base64:REPLACE_WITH_32_BYTE_KEY
+ENCRYPTED_FIELDS_KEY_ID=main
+ENCRYPTED_FIELDS_TOKEN_SECRET=REPLACE_WITH_A_STABLE_SECRET</code></pre>
+      <div class="grid g2" style="margin-top:18px">
+        <div class="card">
+          <h3>モデル</h3>
+          <pre style="margin:10px 0 0"><code>use HasEncryptedFields;
+
+final class User extends Authenticatable
+{
+    use HasEncryptedFields;
+}</code></pre>
+        </div>
+        <div class="card">
+          <h3>認証プロバイダー</h3>
+          <pre style="margin:10px 0 0"><code>'users' => [
+    'driver' => 'encrypted-eloquent',
+    'model' => App\Models\User::class,
+],</code></pre>
+        </div>
+      </div>
+      <p class="sub" style="margin-top:18px"><code>email_bidx</code>、<code>email</code> の長さ、暗号化パスワードブローカーの設定は <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">README</a> を参照してください。</p>
+    </div>
+  </section>
+
+  <section id="tests">
+    <div class="wrap">
+      <h2>検証結果</h2>
+      <p class="sub">ローカル実行と GitHub Actions マトリックスの最新結果。</p>
+      <table>
+        <thead><tr><th>項目</th><th>結果</th></tr></thead>
+        <tbody>
+          <tr><td>パッケージスイート</td><td><b>7 テスト / 31 アサーション</b>: 保存時暗号化、検索、ログイン、リセットトークンのプライバシー、一意性検証、バックフィル、ローテーション。</td></tr>
+          <tr><td>実アプリ dogfood</td><td><b>3 テスト / 34 アサーション</b>: User + Customer、長いメール、認証、リセット通知、バックフィル、複数モデルのローテーション。</td></tr>
+          <tr><td>CI マトリックス</td><td><b>7/7 ジョブ成功</b>: PHP 8.1–8.3 × Laravel 10/11/12。</td></tr>
+          <tr><td>保存時メール</td><td>生の <code>email</code> は <code>enc:v1:…</code>、<code>email_bidx</code> は 64 文字 HMAC、Eloquent は平文を返します。</td></tr>
+          <tr><td>パスワードリセット</td><td>リセットトークン表は平文アドレスではなくブラインドインデックスを保存し、通知は復号済みメールへ送信します。</td></tr>
+        </tbody>
+      </table>
+      <div class="note" style="margin-top:22px">
+        既知の制限: 完全一致検索のみ（メールの部分一致検索なし）、管理画面・キー預託なし、生 SQL 更新はキャストをバイパス、
+        長いメールを暗号化する前に <code>email</code> を varchar(512) 以上または TEXT に拡張してください。
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap faq">
+      <span class="kicker">FAQ</span>
+      <h2>導入前のよくある質問</h2>
+      <details open>
+        <summary>email 列も暗号化されますか？</summary>
+        <p>はい。email 自体が AES-256-GCM の暗号文になり、別の <code>email_bidx</code> 列に正規化した HMAC を保存して完全一致検索と一意性を維持します。</p>
+      </details>
+      <details>
+        <summary>ログインとパスワードリセットは動きますか？</summary>
+        <p>はい。カスタムユーザープロバイダーがログイン認証情報を <code>email_bidx</code> に変換し、暗号化パスワードブローカーがリセットトークンに平文メールを残しません。</p>
+      </details>
+      <details>
+        <summary>メールの部分一致検索はできますか？</summary>
+        <p>いいえ。ブラインドインデックスは完全一致のみです。部分一致 <code>LIKE</code> 検索には別のトークンインデックスが必要で、このパッケージの範囲外です。</p>
+      </details>
+      <details>
+        <summary>メールの一意性はどう検証しますか？</summary>
+        <p>保存される email が暗号文のため、Laravel 標準の <code>unique:users,email</code> の代わりに <code>EncryptedUnique(User::class, 'email')</code> を使います。</p>
+      </details>
+      <details>
+        <summary>キーをなくしたら？</summary>
+        <p>キーなしでは暗号化値を復元できません。キーリングを DB 外にバックアップし、変更前にローテーションを演習してください。</p>
+      </details>
+      <details>
+        <summary>20 フィールドまで暗号化できますか？</summary>
+        <p>はい。モデルマップに任意の数のフィールドを追加できます。<code>index</code> があるフィールドは検索可能、ないフィールドは暗号化のみです。</p>
+      </details>
+      <details>
+        <summary>無料ですか？</summary>
+        <p>はい。GPL-2.0-or-later、ソースとリリースは GitHub。有料プラン、テレメトリー、キー預託はありません。</p>
+      </details>
+    </div>
+  </section>
+  <section id="start" style="border-top:0">
+    <div class="wrap" style="text-align:center">
+      <span class="kicker">はじめる</span>
+      <h2>認証を壊さずにメールを暗号化。</h2>
+      <p class="sub" style="margin-left:auto;margin-right:auto">パッケージをインストールし、フィールドをマップし、バックアップ後にバックフィルのドライランを実行してから本番トラフィックを切り替えてください。</p>
+      <div class="cta" style="justify-content:center">
+        <a class="btn primary" href="https://github.com/thiennhant95/laravel-encrypted-fields/releases/tag/v0.1.2" target="_blank" rel="noopener">v0.1.2 をダウンロード</a>
+        <a class="btn" href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">ドキュメントを読む</a>
+      </div>
+      <div class="chips" style="justify-content:center;margin-top:18px">
+        <span class="chip">Laravel 10/11/12</span><span class="chip">PHP 8.1+</span><span class="chip">テレメトリーなし</span><span class="chip">キーはあなたのもの</span>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap footer-row">
+    <div><b>Encrypted Fields for Laravel</b> · GPL-2.0-or-later · thiennhant95<br><span>公開ランディングページ。記載内容はローカルテストと CI マトリックスに基づきます。</span></div>
+    <div>
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields" target="_blank" rel="noopener">GitHub</a> ·
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/releases" target="_blank" rel="noopener">Releases</a> ·
+      <a href="https://github.com/thiennhant95/laravel-encrypted-fields/blob/main/README.md" target="_blank" rel="noopener">Docs</a>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

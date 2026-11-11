@@ -2,6 +2,13 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Added
+
+- English, Vietnamese and Japanese GitHub Pages landing pages with
+  hreflang, Open Graph metadata, sitemap and robots.txt.
+
 ## 0.1.1 - 2026-11-11
 
 ### Added
