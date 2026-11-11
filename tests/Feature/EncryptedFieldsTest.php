@@ -5,6 +5,7 @@ namespace Thiennhant95\LaravelEncryptedFields\Tests\Feature;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Thiennhant95\LaravelEncryptedFields\Crypto\Cipher;
 use Thiennhant95\LaravelEncryptedFields\Crypto\KeyRing;
@@ -73,6 +74,33 @@ final class EncryptedFieldsTest extends TestCase
 
         $this->assertNotNull($found);
         $this->assertSame($user->id, $found->getAuthIdentifier());
+    }
+
+    public function test_password_reset_tokens_do_not_store_plaintext_email(): void
+    {
+        $user = $this->createUser('reset@example.com', 'Reset', null);
+
+        $token = Password::broker()->createToken($user);
+        $record = DB::table('password_reset_tokens')->first();
+
+        $this->assertNotNull($record);
+        $this->assertNotSame('reset@example.com', $record->email);
+        $this->assertSame(64, strlen((string) $record->email));
+
+        $status = Password::reset(
+            array(
+                'email' => 'reset@example.com',
+                'password' => 'new-secret-password',
+                'password_confirmation' => 'new-secret-password',
+                'token' => $token,
+            ),
+            function (User $user, string $password): void {
+                $user->forceFill(array('password' => Hash::make($password)))->save();
+            }
+        );
+
+        $this->assertSame(Password::PASSWORD_RESET, $status);
+        $this->assertTrue(Hash::check('new-secret-password', (string) $user->fresh()->password));
     }
 
     public function test_encrypt_command_backfills_plaintext_rows_and_indexes(): void

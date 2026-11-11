@@ -123,6 +123,26 @@ This maps `email` credentials to `email_bidx` for `Auth::attempt()` and the
 password broker. Mail and notifications still receive plaintext because the
 Eloquent cast decrypts `$user->email`.
 
+Configure the encrypted password token driver as well. Laravel's default
+`database` token repository writes the plaintext email into
+`password_reset_tokens.email`; this driver writes the blind index instead:
+
+```php
+// config/auth.php
+'passwords' => [
+    'users' => [
+        'provider' => 'users',
+        'table' => 'password_reset_tokens',
+        'expire' => 60,
+        'throttle' => 60,
+        'driver' => 'encrypted-database',
+    ],
+],
+```
+
+The `email` column in that table is a short-lived reset token key, not a
+plaintext address. Clear any old token rows after switching drivers.
+
 Use the encrypted-aware unique rule for registration/profile forms:
 
 ```php
@@ -211,7 +231,8 @@ vendor/bin/phpunit
 ```
 
 The test suite covers encryption at rest, blind indexes, encrypted email login,
-unique validation, backfilling and key rotation.
+password-reset token privacy, unique validation, backfilling and key rotation
+(7 tests / 31 assertions on the latest run).
 
 ## License
 

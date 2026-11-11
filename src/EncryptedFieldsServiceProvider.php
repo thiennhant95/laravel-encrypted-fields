@@ -4,6 +4,7 @@ namespace Thiennhant95\LaravelEncryptedFields;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\ServiceProvider;
+use Thiennhant95\LaravelEncryptedFields\Auth\EncryptedPasswordBrokerManager;
 use Thiennhant95\LaravelEncryptedFields\Auth\EncryptedUserProvider;
 use Thiennhant95\LaravelEncryptedFields\Console\EncryptCommand;
 use Thiennhant95\LaravelEncryptedFields\Console\RotateKeysCommand;
@@ -47,10 +48,18 @@ final class EncryptedFieldsServiceProvider extends ServiceProvider
                 $config
             );
         });
+
+        $this->app->singleton('auth.password', function ($app): EncryptedPasswordBrokerManager {
+            return new EncryptedPasswordBrokerManager($app);
+        });
     }
 
     public function boot(): void
     {
+        $this->app->extend('auth.password', function ($manager, $app): EncryptedPasswordBrokerManager {
+            return new EncryptedPasswordBrokerManager($app);
+        });
+
         $this->publishes(array(
             __DIR__ . '/../config/encrypted-fields.php' => $this->configPath('encrypted-fields.php'),
         ), 'encrypted-fields-config');

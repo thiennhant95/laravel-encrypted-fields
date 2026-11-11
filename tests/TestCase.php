@@ -39,6 +39,13 @@ abstract class TestCase extends Orchestra
             'driver' => 'encrypted-eloquent',
             'model' => User::class,
         ));
+        $app['config']->set('auth.passwords.users', array(
+            'provider' => 'users',
+            'table' => 'password_reset_tokens',
+            'expire' => 60,
+            'throttle' => 60,
+            'driver' => 'encrypted-database',
+        ));
     }
 
     protected function setUp(): void
@@ -56,6 +63,13 @@ abstract class TestCase extends Orchestra
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();
+        });
+
+        Schema::dropIfExists('password_reset_tokens');
+        Schema::create('password_reset_tokens', function (Blueprint $table): void {
+            $table->string('email', 64)->primary();
+            $table->string('token');
+            $table->timestamp('created_at')->nullable();
         });
     }
 }
