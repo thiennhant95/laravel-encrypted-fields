@@ -19,13 +19,20 @@ blind index.
 
 ## Install
 
+Until the package is listed on Packagist, install it from GitHub with a VCS
+repository:
+
 ```bash
-composer require thiennhant95/laravel-encrypted-fields
+composer config repositories.encrypted-fields vcs https://github.com/thiennhant95/laravel-encrypted-fields
+composer require thiennhant95/laravel-encrypted-fields:^0.1
 
 php artisan vendor:publish --tag=encrypted-fields-config
 php artisan vendor:publish --tag=encrypted-fields-migrations
 php artisan migrate
 ```
+
+After Packagist publication, the two `composer config`/`composer require`
+lines can be replaced with `composer require thiennhant95/laravel-encrypted-fields`.
 
 Set stable secrets in `.env`:
 
