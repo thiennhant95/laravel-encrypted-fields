@@ -176,11 +176,17 @@ new EncryptedUnique(User::class, 'email', $user->getKey())
 User::whereEncrypted('email', 'Alice@Example.com')->first();
 User::whereEncrypted('phone', '+1 (555) 123-4567')->first();
 User::whereEncryptedIn('email', $emails)->get();
+User::orderByEncrypted('email')->get();          // deterministic order, not alphabetical
+User::orderByEncrypted('email', 'desc')->get();
 ```
 
 Normalization is applied before hashing. `email`/`lower` ignore case; `phone`
 removes spaces, dashes, parentheses and other non-digit characters except `+`.
 Use the same normalization when writing and querying.
+
+`orderByEncrypted` sorts by the blind index, so rows with the same plaintext
+value group together and the order is stable across queries. It is not
+alphabetical: distinct values follow the HMAC bytes.
 
 ## Migrate existing plaintext
 
@@ -226,8 +232,9 @@ while both keys are configured.
 - Password reset uses the same provider and sends mail to the decrypted email.
 - The default `unique:users,email` rule cannot see through encryption. Use
   `EncryptedUnique` instead.
-- Exact lookup only. Partial email search, sorting by email and database
-  `LIKE` queries are not supported by design.
+- Exact lookup only. Partial email search and database `LIKE` queries are not
+  supported by design. `orderByEncrypted` orders by blind index (grouping and
+  stable order, not alphabetical collation).
 - `email_bidx` is unique. Keep it in sync with the trait; do not update the
   encrypted email with raw SQL.
 - Encrypting a column changes its length and index behavior. Plan a migration
@@ -242,8 +249,9 @@ vendor/bin/phpunit
 ```
 
 The test suite covers encryption at rest, blind indexes, encrypted email login,
-password-reset token privacy, unique validation, backfilling and key rotation
-(7 tests / 31 assertions on the latest run).
+password-reset token privacy, unique validation, backfilling, key rotation,
+query features (`whereEncryptedIn`, `orderByEncrypted`, null handling) and
+decryption failure with a wrong key (15 tests / 53 assertions on the latest run).
 
 ## License
 

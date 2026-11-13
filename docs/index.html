@@ -211,7 +211,7 @@ final class User extends Authenticatable
       <table>
         <thead><tr><th>Area</th><th>Result</th></tr></thead>
         <tbody>
-          <tr><td>Package suite</td><td><b>7 tests / 31 assertions</b>: encryption at rest, lookup, login, password-reset token privacy, unique validation, backfill and rotation.</td></tr>
+          <tr><td>Package suite</td><td><b>15 tests / 53 assertions</b>: encryption at rest, lookup, multi-value lookup, ordering, login, password-reset token privacy, unique validation, backfill, rotation and wrong-key failure.</td></tr>
           <tr><td>Real app dogfood</td><td><b>3 tests / 34 assertions</b>: User + Customer models, long email, auth, reset notification, backfill and multi-model rotation.</td></tr>
           <tr><td>CI matrix</td><td><b>7/7 jobs pass</b>: PHP 8.1–8.3 × Laravel 10/11/12.</td></tr>
           <tr><td>Email at rest</td><td>Raw <code>email</code> contains <code>enc:v1:…</code>; <code>email_bidx</code> is a 64-character HMAC; Eloquent returns plaintext.</td></tr>

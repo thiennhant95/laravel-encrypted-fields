@@ -106,6 +106,22 @@ trait HasEncryptedFields
         );
     }
 
+    /**
+     * Order results by the blind index of an encrypted field.
+     *
+     * The blind index is a deterministic HMAC: rows that share the same
+     * plaintext value group together and the ordering is stable across
+     * queries, which is enough for grouping and deduplication. It is NOT
+     * alphabetical — distinct values follow the HMAC bytes, not the
+     * plaintext collation, and partial/LIKE ordering remains unsupported.
+     */
+    public function scopeOrderByEncrypted(Builder $query, string $field, string $direction = 'asc'): Builder
+    {
+        $index = $this->encryptedIndexColumn($field);
+
+        return $query->orderBy($index, 'desc' === strtolower($direction) ? 'desc' : 'asc');
+    }
+
     private function encryptedIndexColumn(string $field): string
     {
         return app(EncryptedFieldsManager::class)->assertIndexColumn(static::class, $field);

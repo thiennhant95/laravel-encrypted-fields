@@ -211,7 +211,7 @@ final class User extends Authenticatable
       <table>
         <thead><tr><th>Hạng mục</th><th>Kết quả</th></tr></thead>
         <tbody>
-          <tr><td>Package suite</td><td><b>7 test / 31 assertion</b>: mã hoá khi lưu, lookup, login, quyền riêng tư token reset, unique, backfill và rotate.</td></tr>
+          <tr><td>Package suite</td><td><b>15 test / 53 assertion</b>: mã hoá khi lưu, lookup, lookup nhiều giá trị, sắp xếp, login, quyền riêng tư token reset, unique, backfill, rotate và sai key.</td></tr>
           <tr><td>Dogfood app thật</td><td><b>3 test / 34 assertion</b>: User + Customer, email dài, auth, notification reset, backfill và rotate nhiều model.</td></tr>
           <tr><td>CI matrix</td><td><b>7/7 job pass</b>: PHP 8.1–8.3 × Laravel 10/11/12.</td></tr>
           <tr><td>Email khi lưu</td><td><code>email</code> raw là <code>enc:v1:…</code>; <code>email_bidx</code> là HMAC 64 ký tự; Eloquent trả plaintext.</td></tr>
