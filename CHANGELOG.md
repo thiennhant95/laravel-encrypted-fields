@@ -8,8 +8,14 @@ All notable changes to this project are documented here.
 
 - English, Vietnamese and Japanese GitHub Pages landing pages with
   hreflang, Open Graph metadata, sitemap and robots.txt.
+- `orderByEncrypted` scope for deterministic ordering by blind index.
 - Screenshots, architecture diagram, production checklist and
   troubleshooting guide in the README and landing pages.
+
+### Tests
+
+- Expanded the suite to 15 tests and 53 assertions, including multi-value
+  lookup, ordering, null handling and wrong-key failure.
 
 ## 0.1.2 - 2026-11-12
 
