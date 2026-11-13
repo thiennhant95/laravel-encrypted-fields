@@ -8,6 +8,14 @@ All notable changes to this project are documented here.
 
 - English, Vietnamese and Japanese GitHub Pages landing pages with
   hreflang, Open Graph metadata, sitemap and robots.txt.
+- Screenshots, architecture diagram, production checklist and
+  troubleshooting guide in the README and landing pages.
+
+## 0.1.2 - 2026-11-12
+
+### Documentation
+
+- Document VCS installation until the package is available on Packagist.
 
 ## 0.1.1 - 2026-11-11
 

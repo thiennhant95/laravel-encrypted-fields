@@ -1,6 +1,6 @@
 :root{--bg:#070b12;--panel:#0d1420;--panel2:#101a29;--line:#1e2d42;--text:#e6edf6;--muted:#93a4ba;--accent:#5cc8ff;--accent2:#7ee787;--warn:#ffb86b;--radius:18px}
   *{box-sizing:border-box}html{scroll-behavior:smooth}
-  body{margin:0;background:radial-gradient(900px 500px at 15% -10%,rgba(92,200,255,.18),transparent 60%),radial-gradient(800px 500px at 100% 0%,rgba(126,231,135,.12),transparent 55%),var(--bg);color:var(--text);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+  body{margin:0;overflow-x:hidden;background:radial-gradient(900px 500px at 15% -10%,rgba(92,200,255,.18),transparent 60%),radial-gradient(800px 500px at 100% 0%,rgba(126,231,135,.12),transparent 55%),var(--bg);color:var(--text);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
   a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
   .wrap{max-width:1160px;margin:0 auto;padding:0 22px}
   header{padding:22px 0;border-bottom:1px solid var(--line);position:sticky;top:0;backdrop-filter:blur(12px);background:rgba(7,11,18,.78);z-index:10}
@@ -47,6 +47,7 @@
   .lang a{padding:2px 7px;border-radius:999px;color:var(--muted)}
   .lang a.on{background:rgba(92,200,255,.16);color:var(--accent);font-weight:700}
   .hero-grid{display:grid;grid-template-columns:1.25fr .95fr;gap:34px;align-items:center}
+  .hero-grid>*{min-width:0}
   .mini-term{background:#0a1019;border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:0 24px 70px rgba(0,0,0,.35);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13.5px;line-height:1.75;transform:rotate(-.4deg)}
   .mini-term .dots{display:flex;align-items:center;gap:6px;margin-bottom:12px;color:var(--muted);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;font-size:11px}
   .mini-term .dots i{width:10px;height:10px;border-radius:50%;background:#ff5f56;display:inline-block}
@@ -71,3 +72,13 @@
   .faq details[open] summary:after{content:'–'}
   .faq p{margin:0 0 16px;color:var(--muted);font-size:14.5px}
   @media(max-width:900px){.steps{grid-template-columns:1fr}}
+  @media(max-width:600px){
+    .wrap{padding:0 18px}
+    .hero{padding:46px 0 34px}
+    h1{letter-spacing:-.8px}
+    .navlinks{gap:12px;font-size:13px}
+    .stats{gap:10px}
+    .stat{padding:14px}
+    .btn{padding:11px 14px}
+    .mini-term{font-size:12px}
+  }

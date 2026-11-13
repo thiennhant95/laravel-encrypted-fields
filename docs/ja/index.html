@@ -83,7 +83,7 @@
       <div class="stat"><b>20</b><span>1 つの設定マップで管理するフィールド</span></div>
       <div class="stat"><b>0</b><span>保存時のメール平文</span></div>
       <div class="stat"><b>10/11/12</b><span>テスト済み Laravel バージョン</span></div>
-      <div class="stat"><b>65</b><span>パッケージ + dogfood アサーション</span></div>
+      <div class="stat"><b>87</b><span>パッケージ + dogfood アサーション</span></div>
     </div>
   </div>
 
@@ -116,11 +116,11 @@
       <p class="sub">Laravel 12 アプリで <code>User</code> と <code>Customer</code> モデルを使い、マイグレーション、認証、パスワードリセット、バックフィル、キーローテーションまで実行しました。</p>
       <div class="grid g2">
         <figure class="shot">
-          <img src="assets/laravel-status.png" alt="php artisan encrypted-fields:status">
+          <img src="../assets/screenshot-status.png" alt="キーリングと暗号化フィールドの対応を示す encrypted-fields:status の出力" loading="lazy">
           <figcaption>Dogfood アプリの実際の Artisan 出力。</figcaption>
         </figure>
         <figure class="shot">
-          <img src="assets/laravel-atrest.png" alt="暗号化前後の同じ users 行">
+          <img src="../assets/screenshot-runtime.png" alt="DB 内の暗号文、64 文字のブラインドインデックス、Eloquent の平文、成功する Auth::attempt" loading="lazy">
           <figcaption>保存時は暗号文、Eloquent では平文、検索はブラインドインデックス。</figcaption>
         </figure>
       </div>
@@ -147,6 +147,10 @@
         <div class="arrow">→</div>
         <div class="node"><b>暗号</b>AES-256-GCM + HMAC</div>
       </div>
+      <figure class="shot" style="margin-top:24px">
+        <img src="../assets/architecture.svg" alt="設定から Eloquent キャスト、AES-256-GCM、ブラインドインデックスへの構成。ログインとリセットはブラインドインデックス経由" loading="lazy">
+        <figcaption>書き込み、保存、読み取りの流れ。暗号文と HMAC インデックスは別カラムです。</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -199,13 +203,17 @@ final class User extends Authenticatable
       <table>
         <thead><tr><th>項目</th><th>結果</th></tr></thead>
         <tbody>
-          <tr><td>パッケージスイート</td><td><b>7 テスト / 31 アサーション</b>: 保存時暗号化、検索、ログイン、リセットトークンのプライバシー、一意性検証、バックフィル、ローテーション。</td></tr>
+          <tr><td>パッケージスイート</td><td><b>15 テスト / 53 アサーション</b>: 保存時暗号化、検索、複数値検索、並び順、ログイン、リセットトークンのプライバシー、一意性検証、バックフィル、ローテーション、誤ったキー。</td></tr>
           <tr><td>実アプリ dogfood</td><td><b>3 テスト / 34 アサーション</b>: User + Customer、長いメール、認証、リセット通知、バックフィル、複数モデルのローテーション。</td></tr>
           <tr><td>CI マトリックス</td><td><b>7/7 ジョブ成功</b>: PHP 8.1–8.3 × Laravel 10/11/12。</td></tr>
           <tr><td>保存時メール</td><td>生の <code>email</code> は <code>enc:v1:…</code>、<code>email_bidx</code> は 64 文字 HMAC、Eloquent は平文を返します。</td></tr>
           <tr><td>パスワードリセット</td><td>リセットトークン表は平文アドレスではなくブラインドインデックスを保存し、通知は復号済みメールへ送信します。</td></tr>
         </tbody>
       </table>
+      <figure class="shot" style="margin-top:22px">
+        <img src="../assets/screenshot-tests.png" alt="PHPUnit: 15 テスト / 53 アサーション、dogfood 3 テスト / 34 アサーション" loading="lazy">
+        <figcaption>パッケージと dogfood の最新実行結果（ターミナル）。</figcaption>
+      </figure>
       <div class="note" style="margin-top:22px">
         既知の制限: 完全一致検索のみ（メールの部分一致検索なし）、管理画面・キー預託なし、生 SQL 更新はキャストをバイパス、
         長いメールを暗号化する前に <code>email</code> を varchar(512) 以上または TEXT に拡張してください。

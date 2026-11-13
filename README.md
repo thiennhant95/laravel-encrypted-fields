@@ -1,16 +1,8 @@
 # Laravel Encrypted Fields
 
-<p align="center">
-  <img src="docs/assets/laravel-status.png" alt="php artisan encrypted-fields:status" width="720">
-</p>
-
 Config-driven field-level encryption for Laravel. Encrypt customer PII at rest,
 keep Eloquent readable, and look up encrypted email addresses through a
 blind index.
-
-<p align="center">
-  <img src="docs/assets/laravel-atrest.png" alt="Same users row before and after encryption" width="720">
-</p>
 
 - AES-256-GCM with a key ring for rotation
 - Eloquent encryption cast for declared fields
@@ -22,6 +14,40 @@ blind index.
 **Website:** [English](https://thiennhant95.github.io/laravel-encrypted-fields/) ·
 [Tiếng Việt](https://thiennhant95.github.io/laravel-encrypted-fields/vi/) ·
 [日本語](https://thiennhant95.github.io/laravel-encrypted-fields/ja/)
+
+<p align="center">
+  <img src="docs/assets/screenshot-runtime.png" alt="Raw database values are ciphertext, Eloquent returns plaintext, and Auth::attempt still succeeds" width="900">
+</p>
+
+## At a glance
+
+| | |
+|---|---|
+| **Problem** | Customer email and PII are readable in database dumps, backups and read replicas. |
+| **Approach** | Config-driven Eloquent cast with AES-256-GCM and a key ring. |
+| **Lookup** | HMAC blind index (`email_bidx`) for exact, case-insensitive equality. |
+| **Auth** | Encrypted user provider, encrypted password-reset token repository. |
+| **Operations** | Backfill, status and key-rotation Artisan commands with dry runs. |
+| **UI** | None by design: keys and operational choices stay with your app. |
+
+## Contents
+
+- [Requirements](#requirements)
+- [Install](#install)
+- [How it works](#how-it-works)
+- [Configure fields](#configure-fields)
+- [Email and schema](#email-and-schema)
+- [Auth, reset and validation](#auth-reset-and-validation)
+- [Query encrypted fields](#query-encrypted-fields)
+- [Migrate existing plaintext](#migrate-existing-plaintext)
+- [Rotate keys](#rotate-keys)
+- [Commands](#commands)
+- [Screenshots](#screenshots)
+- [Production checklist](#production-checklist)
+- [Troubleshooting](#troubleshooting)
+- [Laravel integration notes](#laravel-integration-notes)
+- [Testing](#testing)
+- [License](#license)
 
 ## Requirements
 
@@ -62,6 +88,22 @@ php -r 'echo "base64:".base64_encode(random_bytes(32)).PHP_EOL;'
 
 Never put these values in the database or commit them. Keep them in a secret
 manager or the environment.
+
+## How it works
+
+<p align="center">
+  <img src="docs/assets/architecture.svg" alt="Config flows through HasEncryptedFields to AES-256-GCM and HMAC. Login and password reset resolve email through the blind index." width="100%">
+</p>
+
+Writes go through the Eloquent cast: the plaintext is encrypted with the current
+key and the normalized value is HMACed into the configured blind-index column.
+Reads decrypt through the cast. Login and password reset use the same blind
+index, so no plaintext email is stored in `users.email` or
+`password_reset_tokens.email`.
+
+Only fields listed in `config/encrypted-fields.php` are encrypted. Fields with
+an `index` are also searchable by exact equality; fields without one are
+ciphertext only.
 
 ## Configure fields
 
@@ -232,6 +274,82 @@ while both keys are configured.
 | `encrypted-fields:status` | Show models, fields, indexes and key configuration |
 | `encrypted-fields:encrypt` | Encrypt existing plaintext and fill blind indexes |
 | `encrypted-fields:rotate` | Re-encrypt with the current key |
+
+## Screenshots
+
+These captures come from the Laravel 12 dogfood app used during development.
+The data is synthetic; ciphertext is truncated for readability.
+
+**Status and field map**
+
+![Artisan status output showing the key ring and encrypted field map](docs/assets/screenshot-status.png)
+
+**Encrypted at rest, plaintext in Eloquent**
+
+![Raw email ciphertext, a 64-character blind index, Eloquent plaintext and a successful Auth::attempt](docs/assets/screenshot-runtime.png)
+
+**Package and dogfood verification**
+
+![PHPUnit output: 15 tests and 53 assertions, plus 3 dogfood tests and 34 assertions](docs/assets/screenshot-tests.png)
+
+## Production checklist
+
+- [ ] Generate a 32-byte key and store it in a secret manager, not the database.
+- [ ] Set a stable `ENCRYPTED_FIELDS_KEY_ID` and `ENCRYPTED_FIELDS_TOKEN_SECRET`.
+- [ ] Widen every encrypted column before backfilling (for example `email` to
+      `varchar(512)` or `TEXT`).
+- [ ] Add unique blind-index columns such as `email_bidx`; drop the old
+      plaintext unique index.
+- [ ] Configure `encrypted-eloquent` as the user provider and
+      `encrypted-database` as the password broker driver.
+- [ ] Clear old plaintext password-reset rows before switching the driver.
+- [ ] Run `encrypted-fields:encrypt --dry-run`, inspect the counts, then run it
+      for real.
+- [ ] Test login, password reset, registration uniqueness and a raw DB dump.
+- [ ] Keep the old key in the key ring until rotation is verified.
+- [ ] Back up the key ring separately from the database. Losing the key means
+      losing the data.
+
+## Troubleshooting
+
+**Login fails after enabling encryption**
+
+Check the user provider driver is `encrypted-eloquent`, the model has the
+`HasEncryptedFields` trait, and `email_bidx` is populated. The email
+normalization must match the value written at registration time.
+
+**A duplicate email passes validation**
+
+Laravel's `unique:users,email` rule cannot see through ciphertext. Use
+`new EncryptedUnique(User::class, 'email')` (and the ignore-ID variant on
+updates) together with a unique `email_bidx` index.
+
+**Password reset cannot find the user**
+
+Use the `encrypted-database` broker driver and clear old token rows. The
+`password_reset_tokens.email` column stores the blind index, not the address.
+
+**Decryption fails after deploying a new key**
+
+The ciphertext includes its key id. Add the old key to `encrypted-fields.keys`
+and keep the old `key_id` available until every row has been rotated. Restore
+from a backup only as the last resort.
+
+**`LIKE` search or alphabetical sorting does not work**
+
+Blind indexes are exact-match HMACs. Partial `LIKE`, full-text search and
+natural alphabetical sorting are not supported. `orderByEncrypted` orders by
+the HMAC bytes: stable and grouped, but not alphabetical.
+
+**Long email values are truncated**
+
+The ciphertext is longer than the plaintext. Widen the encrypted column before
+backfilling. On Laravel 10, `change()` needs `doctrine/dbal`.
+
+**Raw SQL writes bypass the cast**
+
+Writes through `DB::table()` or raw SQL do not update the blind index. Use
+Eloquent or run the backfill command after importing data.
 
 ## Laravel integration notes
 

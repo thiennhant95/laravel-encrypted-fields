@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="560" viewBox="0 0 1200 560" role="img" aria-labelledby="title desc">
+  <title id="title">Encrypted Fields for Laravel architecture</title>
+  <desc id="desc">Config maps models and fields to an Eloquent cast and blind indexer. Writes store ciphertext and an HMAC index. Login and password reset resolve email through the blind index.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1220"/>
+      <stop offset="1" stop-color="#070b12"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#5cc8ff"/>
+      <stop offset="1" stop-color="#3b82f6"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#5cc8ff"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="10" markerHeight="10" refX="8" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#7ee787"/>
+    </marker>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="10" stdDeviation="18" flood-color="#000" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="560" fill="url(#bg)"/>
+  <circle cx="110" cy="40" r="190" fill="#5cc8ff" opacity="0.06"/>
+  <circle cx="1100" cy="520" r="210" fill="#7ee787" opacity="0.05"/>
+
+  <text x="44" y="54" fill="#93a4ba" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700" letter-spacing="2">HASENCRYPTEDFIELDS · WRITE PATH</text>
+
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <rect x="44" y="82" width="300" height="92" rx="14" fill="#0d1420" stroke="#1e2d42" filter="url(#shadow)"/>
+    <text x="66" y="112" fill="#5cc8ff" font-size="12" font-weight="700" letter-spacing="1.2">CONFIG MAP</text>
+    <text x="66" y="138" fill="#e6edf6" font-size="15" font-family="Consolas, monospace">config/encrypted-fields.php</text>
+    <text x="66" y="158" fill="#93a4ba" font-size="13">model → field → index → normalize</text>
+
+    <rect x="450" y="82" width="300" height="92" rx="14" fill="#0d1420" stroke="#1e2d42" filter="url(#shadow)"/>
+    <text x="472" y="112" fill="#5cc8ff" font-size="12" font-weight="700" letter-spacing="1.2">ELOQUENT</text>
+    <text x="472" y="138" fill="#e6edf6" font-size="15" font-family="Consolas, monospace">HasEncryptedFields</text>
+    <text x="472" y="158" fill="#93a4ba" font-size="13">auto cast + index sync, default deny</text>
+
+    <rect x="856" y="82" width="300" height="92" rx="14" fill="#0d1420" stroke="#1e2d42" filter="url(#shadow)"/>
+    <text x="878" y="112" fill="#7ee787" font-size="12" font-weight="700" letter-spacing="1.2">CRYPTO</text>
+    <text x="878" y="138" fill="#e6edf6" font-size="15" font-family="Consolas, monospace">Cipher + BlindIndexer</text>
+    <text x="878" y="158" fill="#93a4ba" font-size="13">AES-256-GCM + HMAC-SHA256</text>
+
+    <line x1="344" y1="128" x2="440" y2="128" stroke="#5cc8ff" stroke-width="2" marker-end="url(#arrow)"/>
+    <line x1="750" y1="128" x2="846" y2="128" stroke="#5cc8ff" stroke-width="2" marker-end="url(#arrow)"/>
+  </g>
+
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="44" y="226" fill="#93a4ba" font-size="12" font-weight="700" letter-spacing="2">STORAGE</text>
+    <rect x="44" y="246" width="520" height="94" rx="14" fill="#101a29" stroke="#2b3d57"/>
+    <text x="66" y="276" fill="#ffb86b" font-size="12" font-weight="700" letter-spacing="1.2">CIPHERTEXT</text>
+    <text x="66" y="302" fill="#e6edf6" font-size="15" font-family="Consolas, monospace">users.email</text>
+    <text x="66" y="324" fill="#ffb86b" font-size="14" font-family="Consolas, monospace">enc:v1:main:L1IgDB/rWgu...</text>
+
+    <rect x="636" y="246" width="520" height="94" rx="14" fill="#101a29" stroke="#2b3d57"/>
+    <text x="658" y="276" fill="#7ee787" font-size="12" font-weight="700" letter-spacing="1.2">BLIND INDEX</text>
+    <text x="658" y="302" fill="#e6edf6" font-size="15" font-family="Consolas, monospace">users.email_bidx</text>
+    <text x="658" y="324" fill="#7ee787" font-size="14" font-family="Consolas, monospace">27b1d38d2e20... · unique · 64 chars</text>
+  </g>
+
+  <g font-family="Segoe UI, Arial, sans-serif">
+    <text x="44" y="406" fill="#93a4ba" font-size="12" font-weight="700" letter-spacing="2">READ PATH</text>
+    <rect x="44" y="426" width="300" height="80" rx="14" fill="#0d1420" stroke="#1e2d42"/>
+    <text x="66" y="455" fill="#5cc8ff" font-size="12" font-weight="700" letter-spacing="1.2">AUTH</text>
+    <text x="66" y="480" fill="#e6edf6" font-size="14" font-family="Consolas, monospace">Auth::attempt()</text>
+
+    <rect x="450" y="426" width="300" height="80" rx="14" fill="#0d1420" stroke="#1e2d42"/>
+    <text x="472" y="455" fill="#5cc8ff" font-size="12" font-weight="700" letter-spacing="1.2">USER PROVIDER</text>
+    <text x="472" y="480" fill="#e6edf6" font-size="14" font-family="Consolas, monospace">EncryptedUserProvider</text>
+
+    <rect x="856" y="426" width="300" height="80" rx="14" fill="#0d1420" stroke="#1e2d42"/>
+    <text x="878" y="455" fill="#7ee787" font-size="12" font-weight="700" letter-spacing="1.2">RESET TOKENS</text>
+    <text x="878" y="480" fill="#e6edf6" font-size="14" font-family="Consolas, monospace">EncryptedDatabaseToken...</text>
+
+    <line x1="344" y1="466" x2="440" y2="466" stroke="#7ee787" stroke-width="2" marker-end="url(#arrowGreen)"/>
+    <line x1="750" y1="466" x2="846" y2="466" stroke="#7ee787" stroke-width="2" marker-end="url(#arrowGreen)"/>
+    <text x="386" y="452" fill="#93a4ba" font-size="11">email</text>
+    <text x="778" y="452" fill="#93a4ba" font-size="11">bidx</text>
+  </g>
+
+  <text x="44" y="544" fill="#93a4ba" font-family="Segoe UI, Arial, sans-serif" font-size="12">Reads decrypt through the cast; lookups use the HMAC index. No plaintext email is stored at rest.</text>
+</svg>

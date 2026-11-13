@@ -83,7 +83,7 @@
       <div class="stat"><b>20</b><span>fields in one config map</span></div>
       <div class="stat"><b>0</b><span>plaintext emails at rest</span></div>
       <div class="stat"><b>10/11/12</b><span>Laravel versions tested</span></div>
-      <div class="stat"><b>65</b><span>package + dogfood assertions</span></div>
+      <div class="stat"><b>87</b><span>package + dogfood assertions</span></div>
     </div>
   </div>
 
@@ -116,11 +116,11 @@
       <p class="sub">A Laravel 12 app with <code>User</code> and <code>Customer</code> models, run end-to-end with migrations, auth, password reset, backfill and key rotation.</p>
       <div class="grid g2">
         <figure class="shot">
-          <img src="assets/laravel-status.png" alt="php artisan encrypted-fields:status">
-          <figcaption>Real Artisan output from the dogfood app.</figcaption>
+          <img src="assets/screenshot-status.png" alt="Artisan status output showing the key ring and encrypted field map" loading="lazy">
+          <figcaption>Real <code>encrypted-fields:status</code> output from the dogfood app.</figcaption>
         </figure>
         <figure class="shot">
-          <img src="assets/laravel-atrest.png" alt="Same users row before and after encryption">
+          <img src="assets/screenshot-runtime.png" alt="Raw email ciphertext, a 64-character blind index, Eloquent plaintext and a successful Auth::attempt" loading="lazy">
           <figcaption>Encrypted at rest; plaintext through Eloquent; lookup via blind index.</figcaption>
         </figure>
       </div>
@@ -147,6 +147,10 @@
         <div class="arrow">→</div>
         <div class="node"><b>Crypto</b>AES-256-GCM + HMAC</div>
       </div>
+      <figure class="shot" style="margin-top:24px">
+        <img src="assets/architecture.svg" alt="Architecture: config to Eloquent cast to AES-256-GCM and blind index; login and reset read through the blind index" loading="lazy">
+        <figcaption>Write path, storage, and read path. Ciphertext and the HMAC index are separate columns.</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -206,6 +210,10 @@ final class User extends Authenticatable
           <tr><td>Password reset</td><td>Reset token table stores the blind index, not the plaintext address; notification still sends to the decrypted email.</td></tr>
         </tbody>
       </table>
+      <figure class="shot" style="margin-top:22px">
+        <img src="assets/screenshot-tests.png" alt="PHPUnit output: 15 tests and 53 assertions, plus 3 dogfood tests and 34 assertions" loading="lazy">
+        <figcaption>Latest package and dogfood runs, captured from the terminal.</figcaption>
+      </figure>
       <div class="note" style="margin-top:22px">
         Known limits: exact lookup only (no partial email search); no admin UI or key escrow; raw SQL updates bypass casts;
         widen <code>email</code> to at least varchar(512) or TEXT before encrypting long addresses; HPOS is not relevant to this package.

@@ -83,7 +83,7 @@
       <div class="stat"><b>20</b><span>field trong một config map</span></div>
       <div class="stat"><b>0</b><span>email plaintext khi lưu</span></div>
       <div class="stat"><b>10/11/12</b><span>phiên bản Laravel đã test</span></div>
-      <div class="stat"><b>65</b><span>assertion package + dogfood</span></div>
+      <div class="stat"><b>87</b><span>assertion package + dogfood</span></div>
     </div>
   </div>
 
@@ -116,11 +116,11 @@
       <p class="sub">App Laravel 12 với model <code>User</code> và <code>Customer</code>, chạy end-to-end với migration, auth, reset mật khẩu, backfill và rotate key.</p>
       <div class="grid g2">
         <figure class="shot">
-          <img src="assets/laravel-status.png" alt="php artisan encrypted-fields:status">
+          <img src="../assets/screenshot-status.png" alt="Output encrypted-fields:status với key ring và bản đồ field" loading="lazy">
           <figcaption>Output Artisan thật từ app dogfood.</figcaption>
         </figure>
         <figure class="shot">
-          <img src="assets/laravel-atrest.png" alt="Cùng một row users trước và sau khi mã hoá">
+          <img src="../assets/screenshot-runtime.png" alt="Email trong DB là ciphertext, blind index 64 ký tự, Eloquent trả plaintext và Auth::attempt thành công" loading="lazy">
           <figcaption>Lưu ciphertext; Eloquent trả plaintext; lookup qua blind index.</figcaption>
         </figure>
       </div>
@@ -147,6 +147,10 @@
         <div class="arrow">→</div>
         <div class="node"><b>Crypto</b>AES-256-GCM + HMAC</div>
       </div>
+      <figure class="shot" style="margin-top:24px">
+        <img src="../assets/architecture.svg" alt="Kiến trúc: config đến Eloquent cast, AES-256-GCM và blind index; login và reset đọc qua blind index" loading="lazy">
+        <figcaption>Luồng ghi, lưu trữ và luồng đọc. Ciphertext và HMAC index nằm ở hai cột riêng.</figcaption>
+      </figure>
     </div>
   </section>
 
@@ -206,6 +210,10 @@ final class User extends Authenticatable
           <tr><td>Reset mật khẩu</td><td>Bảng reset token lưu blind index, không lưu email plaintext; notification vẫn gửi tới email đã giải mã.</td></tr>
         </tbody>
       </table>
+      <figure class="shot" style="margin-top:22px">
+        <img src="../assets/screenshot-tests.png" alt="PHPUnit: 15 test 53 assertion, cùng 3 test dogfood 34 assertion" loading="lazy">
+        <figcaption>Kết quả package và dogfood mới nhất, chụp từ terminal.</figcaption>
+      </figure>
       <div class="note" style="margin-top:22px">
         Giới hạn: chỉ exact lookup (không tìm một phần email); không admin UI/key escrow; update bằng raw SQL sẽ bypass cast;
         cần mở <code>email</code> lên ít nhất varchar(512) hoặc TEXT trước khi mã hoá email dài.
