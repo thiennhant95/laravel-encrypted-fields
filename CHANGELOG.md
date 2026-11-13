@@ -4,6 +4,8 @@ All notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## 0.1.3 - 2026-11-13
+
 ### Added
 
 - English, Vietnamese and Japanese GitHub Pages landing pages with
