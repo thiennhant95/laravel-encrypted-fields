@@ -116,23 +116,11 @@
       <p class="sub">A Laravel 12 app with <code>User</code> and <code>Customer</code> models, run end-to-end with migrations, auth, password reset, backfill and key rotation.</p>
       <div class="grid g2">
         <figure class="shot">
-          <pre style="margin:0;border:0;border-radius:0"><code>$ php artisan encrypted-fields:status
-current_key_id          main
-current_key_configured  yes
-token_secret_configured yes
-
-$ php artisan encrypted-fields:encrypt --dry-run
-App\Models\User (3 fields)
-  would_change=1 changed=0 errors=0
-Dry run: 1 rows need changes</code></pre>
+          <img src="assets/laravel-status.png" alt="php artisan encrypted-fields:status">
           <figcaption>Real Artisan output from the dogfood app.</figcaption>
         </figure>
         <figure class="shot">
-          <pre style="margin:0;border:0;border-radius:0"><code>DB email:      enc:v1:main:9f2c8a...
-$user->email:  taro@example.com
-email_bidx:    8c1e... (64 chars)
-Auth::attempt(...): true
-reset token:   8c1e... (no plaintext email)</code></pre>
+          <img src="assets/laravel-atrest.png" alt="Same users row before and after encryption">
           <figcaption>Encrypted at rest; plaintext through Eloquent; lookup via blind index.</figcaption>
         </figure>
       </div>

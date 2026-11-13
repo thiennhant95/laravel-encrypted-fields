@@ -1,8 +1,16 @@
 # Laravel Encrypted Fields
 
+<p align="center">
+  <img src="docs/assets/laravel-status.png" alt="php artisan encrypted-fields:status" width="720">
+</p>
+
 Config-driven field-level encryption for Laravel. Encrypt customer PII at rest,
 keep Eloquent readable, and look up encrypted email addresses through a
 blind index.
+
+<p align="center">
+  <img src="docs/assets/laravel-atrest.png" alt="Same users row before and after encryption" width="720">
+</p>
 
 - AES-256-GCM with a key ring for rotation
 - Eloquent encryption cast for declared fields
